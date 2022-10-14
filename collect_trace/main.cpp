@@ -54,8 +54,8 @@ int main() {
                 image_file << "0 0 0\n";
             }
         }
-
-        std::ofstream history_file("history.txt");
-        for (auto &h : load_history) history_file << h << '\n';
     }
+
+    std::ofstream history_file("history.txt");
+    for (auto &h : load_history) history_file << h << '\n';
 }
