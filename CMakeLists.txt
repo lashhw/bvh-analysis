@@ -9,3 +9,5 @@ target_link_libraries(visualize PUBLIC bvh)
 
 add_executable(collect_trace collect_trace/main.cpp)
 target_link_libraries(collect_trace PUBLIC bvh)
+
+add_executable(obj_to_ply obj_to_ply/main.cpp)
