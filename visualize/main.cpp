@@ -1,9 +1,9 @@
 #include <unordered_set>
 #include <filesystem>
-#include "bvh/triangle.hpp"
-#include "bvh/sweep_sah_builder.hpp"
-#include "bvh/single_ray_traverser.hpp"
-#include "bvh/primitive_intersectors.hpp"
+#include <bvh/triangle.hpp>
+#include <bvh/sweep_sah_builder.hpp>
+#include <bvh/single_ray_traverser.hpp>
+#include <bvh/primitive_intersectors.hpp>
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "../third_party/tiny_obj_loader.h"
 #include "../third_party/happly.h"
