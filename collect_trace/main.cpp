@@ -17,28 +17,12 @@ int main() {
     std::vector<Triangle> triangles = parse_obj("sponza.obj");
     Bvh bvh = build_bvh(triangles);
 
-    std::vector<std::pair<size_t, size_t>> edges;
-    std::queue<size_t> queue;
-    queue.push(0);
-    while (!queue.empty()) {
-        size_t curr = queue.front();
-        queue.pop();
-        if (!bvh.nodes[curr].is_leaf()) {
-            size_t left_idx = bvh.nodes[curr].first_child_or_primitive;
-            size_t right_idx = left_idx + 1;
-            edges.emplace_back(curr, left_idx);
-            edges.emplace_back(curr, right_idx);
-            queue.push(left_idx);
-            queue.push(right_idx);
-        }
-    }
-
     bvh::ClosestPrimitiveIntersector<Bvh, Triangle> primitive_intersector(bvh, triangles.data());
     bvh::SingleRayTraverser<Bvh> traverser(bvh);
 
+    std::vector<size_t> load_history;
     std::ofstream image_file("image.ppm");
     image_file << "P3\n" << width << ' ' << height << "\n255\n";
-    std::filesystem::create_directory("graphs");
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             constexpr float origin_x = 5.f;
@@ -54,7 +38,6 @@ int main() {
             );
 
             std::unordered_set<size_t> traversed;
-            std::vector<size_t> load_history;
             if (auto hit = traverser.traverse(ray, primitive_intersector, traversed, load_history)) {
                 auto triangle_index = hit->primitive_index;
                 float r = triangles[triangle_index].n[0];
@@ -70,23 +53,9 @@ int main() {
             } else {
                 image_file << "0 0 0\n";
             }
-
-            std::string filepath = "graphs/bvh_" + std::to_string(i) + "_" + std::to_string(j) + ".dot";
-            std::ofstream gv_file(filepath);
-            gv_file << "digraph bvh {\n";
-            gv_file << "    layout=twopi\n";
-            gv_file << "    ranksep=2\n";
-            gv_file << "    node [shape=point]\n";
-            gv_file << "    edge [arrowhead=none penwidth=0.5]\n";
-            gv_file << "    0 [shape=circle label=root]";
-
-            for (auto &edge : edges) {
-                gv_file << "\n    " << edge.first << " -> " << edge.second;
-                if (traversed.count(edge.first) != 0) gv_file << " [color=red penwidth=5]";
-            }
-
-            gv_file << "\n}";
-            gv_file.close();
         }
+
+        std::ofstream history_file("history.txt");
+        for (auto &h : load_history) history_file << h << '\n';
     }
 }
