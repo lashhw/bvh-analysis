@@ -1,10 +1,12 @@
 #include <unordered_set>
+#include <unordered_map>
 #include <filesystem>
 #include <bvh/triangle.hpp>
 #include <bvh/single_ray_traverser.hpp>
 #include <bvh/primitive_intersectors.hpp>
 #include "../utils/parse.hpp"
 #include "../utils/build_bvh.hpp"
+#include "../utils/cluster.hpp"
 
 using Triangle = bvh::Triangle<float>;
 using Ray = bvh::Ray<float>;
@@ -16,6 +18,7 @@ constexpr int height = 10;
 int main() {
     std::vector<Triangle> triangles = parse_obj("sponza.obj");
     Bvh bvh = build_bvh(triangles);
+    std::unordered_map<size_t, size_t> node_idx_to_cluster_idx = cluster(bvh, 4);
 
     std::vector<std::pair<size_t, size_t>> edges;
     std::queue<size_t> queue;
@@ -83,6 +86,9 @@ int main() {
             for (auto &edge : edges) {
                 gv_file << "\n    " << edge.first << " -> " << edge.second;
                 if (traversed.count(edge.first) != 0) gv_file << " [color=red penwidth=5]";
+                else if (node_idx_to_cluster_idx[edge.second] == 1) gv_file << " [color=yellow]";
+                else if (node_idx_to_cluster_idx[edge.second] == 2) gv_file << " [color=green]";
+                else if (node_idx_to_cluster_idx[edge.second] == 3) gv_file << " [color=blue]";
             }
 
             gv_file << "\n}";
