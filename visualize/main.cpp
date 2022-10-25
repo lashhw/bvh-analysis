@@ -11,24 +11,30 @@ using Ray = bvh::Ray<float>;
 using Bvh = bvh::Bvh<float>;
 
 int main() {
-    std::vector<Triangle> triangles = parse_ply("sponza.ply");
+    std::vector<Triangle> triangles = parse_obj("breakfast_room.obj");
     Bvh bvh = build_bvh(triangles);
+    std::cout << "BVH has " << bvh.node_count << " nodes" << std::endl;
 
     std::vector<std::pair<size_t, size_t>> edges;
-    std::queue<size_t> queue;
-    queue.push(0);
+    std::queue<std::pair<size_t, int>> queue;
+    queue.emplace(0, 0);
+    std::map<int, int> stat;
     while (!queue.empty()) {
-        size_t curr = queue.front();
+        auto curr = queue.front();
         queue.pop();
-        if (!bvh.nodes[curr].is_leaf()) {
-            size_t left_idx = bvh.nodes[curr].first_child_or_primitive;
+        if (!bvh.nodes[curr.first].is_leaf()) {
+            size_t left_idx = bvh.nodes[curr.first].first_child_or_primitive;
             size_t right_idx = left_idx + 1;
-            edges.emplace_back(curr, left_idx);
-            edges.emplace_back(curr, right_idx);
-            queue.push(left_idx);
-            queue.push(right_idx);
+            queue.emplace(left_idx, curr.second + 1);
+            queue.emplace(right_idx, curr.second + 1);
         }
+        stat[curr.second]++;
     }
+
+    for (auto &x : stat) {
+        std::cout << x.first << ", " << x.second << std::endl;
+    }
+    exit(EXIT_SUCCESS);
 
     bvh::ClosestPrimitiveIntersector<Bvh, Triangle> primitive_intersector(bvh, triangles.data());
     bvh::SingleRayTraverser<Bvh> traverser(bvh);
