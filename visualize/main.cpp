@@ -1,4 +1,4 @@
-#include <unordered_set>
+#include <unordered_map>
 #include <filesystem>
 #include <bvh/triangle.hpp>
 #include <bvh/single_ray_traverser.hpp>
@@ -43,7 +43,7 @@ int main() {
                 0.f,
                 r[6]
         );
-        std::unordered_set<size_t> traversed;
+        std::unordered_map<size_t, bvh::SingleRayTraverser<Bvh>::NodeRecord> traversed;
         std::vector<size_t> node_load_trace;
         traverser.traverse(ray, primitive_intersector, traversed, node_load_trace);
 
@@ -57,9 +57,17 @@ int main() {
         dot_file << "    edge [arrowhead=none penwidth=0.5]\n";
         dot_file << "    0 [shape=circle label=root]";
 
+        for (auto &t : traversed) {
+            if (t.second == bvh::SingleRayTraverser<Bvh>::MISS) {
+                dot_file << "\n    " << t.first << " [shape=star color=red label=\"\"]";
+            } else if (t.second == bvh::SingleRayTraverser<Bvh>::PRUNED) {
+                dot_file << "\n    " << t.first << " [shape=star color=blue label=\"\"]";
+            }
+        }
+
         for (auto &edge : edges) {
             dot_file << "\n    " << edge.first << " -> " << edge.second;
-            if (traversed.count(edge.first) != 0) dot_file << " [color=red penwidth=5]";
+            if (traversed.count(edge.second) != 0) dot_file << " [color=red penwidth=5]";
         }
 
         dot_file << "\n}";
