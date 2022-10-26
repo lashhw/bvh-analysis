@@ -14,9 +14,9 @@ using Bvh = bvh::Bvh<float>;
 int main() {
     std::vector<Triangle> triangles = parse_ply("sponza.ply");
     Bvh bvh = build_bvh(triangles);
-    std::unordered_map<size_t, size_t> node_idx_to_cluster_idx = cluster(bvh, 4096);
+    std::unordered_map<size_t, size_t> node_idx_to_cluster_idx = cluster(bvh, 1024);
 
-    std::vector<std::pair<size_t, size_t>> edges;
+    std::vector<std::tuple<size_t, size_t, bool>> edges;
     std::queue<size_t> queue;
     queue.push(0);
     while (!queue.empty()) {
@@ -29,8 +29,8 @@ int main() {
                 std::swap(left_idx, right_idx);
             }
 
-            edges.emplace_back(curr, left_idx);
-            edges.emplace_back(curr, right_idx);
+            edges.emplace_back(curr, left_idx, true);
+            edges.emplace_back(curr, right_idx, false);
             queue.push(left_idx);
             queue.push(right_idx);
         }
@@ -72,17 +72,20 @@ int main() {
         }
 
         for (auto &edge : edges) {
-            dot_file << "\n    " << edge.first << " -> " << edge.second;
-            assert(node_idx_to_cluster_idx.count(edge.second) > 0);
-            size_t color_id = node_idx_to_cluster_idx[edge.second] % 5;
-            if (color_id == 0) dot_file << " [color=deeppink]";
-            else if (color_id == 1) dot_file << " [color=orange]";
-            else if (color_id == 2) dot_file << " [color=green]";
-            else if (color_id == 3) dot_file << " [color=blue]";
-            else if (color_id == 4) dot_file << " [color=blueviolet]";
+            dot_file << "\n    " << std::get<0>(edge) << " -> " << std::get<1>(edge);
+            dot_file << " [";
+            if (!std::get<2>(edge)) dot_file << "style=dashed ";
 
-            if (traversed.count(edge.second) != 0) {
-                dot_file << "\n    " << edge.first << " -> " << edge.second << " [color=red penwidth=5]";
+            assert(node_idx_to_cluster_idx.count(std::get<1>(edge)) > 0);
+            size_t color_id = node_idx_to_cluster_idx[std::get<1>(edge)] % 5;
+            if (color_id == 0) dot_file << "color=deeppink]";
+            else if (color_id == 1) dot_file << "color=orange]";
+            else if (color_id == 2) dot_file << "color=green]";
+            else if (color_id == 3) dot_file << "color=blue]";
+            else if (color_id == 4) dot_file << "color=blueviolet]";
+
+            if (traversed.count(std::get<1>(edge)) != 0) {
+                dot_file << "\n    " << std::get<0>(edge) << " -> " << std::get<1>(edge) << " [color=red penwidth=5]";
             }
         }
 
