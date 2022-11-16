@@ -21,7 +21,10 @@ int main() {
         }
         nodes_coe_file << std::setfill('0') << std::setw(8) << std::hex << node.primitive_count;
         nodes_coe_file << ",\n";
-        nodes_coe_file << std::setfill('0') << std::setw(8) << std::hex << node.first_child_or_primitive;
+        if (node.is_leaf())
+            nodes_coe_file << std::setfill('0') << std::setw(8) << std::hex << 12 * node.first_child_or_primitive;
+        else
+            nodes_coe_file << std::setfill('0') << std::setw(8) << std::hex << 8 * node.first_child_or_primitive;
         nodes_coe_file << ",\n";
     }
     nodes_coe_file << "0;";
