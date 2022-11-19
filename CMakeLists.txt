@@ -14,3 +14,5 @@ add_executable(obj_to_ply obj_to_ply/main.cpp)
 
 add_executable(gen_coe_file gen_coe_file/main.cpp)
 target_link_libraries(gen_coe_file PUBLIC bvh)
+
+add_executable(merge_ply merge_ply/main.cpp)
